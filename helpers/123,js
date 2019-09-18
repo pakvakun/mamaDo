@@ -1,0 +1,106 @@
+Global = () => {
+        // <View style={styles.tabContent}>
+        //     <ScrollView contentContainerStyle={styles.scrollContainer}>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Название компании</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputName: text }) } placeholder="Не указано" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputName.length > 5 ? <InputCheck style={styles.inputCheck}/> : null}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Возраст детей</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputAge: text }) }  placeholder="от / до" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputAge.length > 5 ? <InputCheck style={styles.inputCheck}/> : <InputPlus style={{position: 'absolute', right: 20, top: 27}}/>}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Категория</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputCategory: text }) }  placeholder="Выберите категорию" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputCategory.length > 5 ? <InputCheck style={styles.inputCheck}/> : <TouchableOpacity onPress={this.toggleCategory} style={{position: 'absolute', right: 20, top: 27}}><InputPlus/></TouchableOpacity>}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Телефон компании</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputPhone: text }) }  placeholder="Не указано" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputPhone.length > 5 ? <InputCheck style={styles.inputCheck}/> : null}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>E-mail</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputEmail: text }) }  placeholder="Не указано" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputEmail.length > 5 ? <InputCheck style={styles.inputCheck}/> : null}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Сайт</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputSite: text }) } placeholder="Не указано" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputSite.length > 5 ? <InputCheck style={styles.inputCheck}/> : null}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Социальные сети</Text>
+        //             <View style={{flexDirection: 'row', marginTop: 15}}>
+        //                 <TouchableOpacity style={styles.iconOuter}>
+        //                     <IconVk style={{opacity: 0.6}}/>
+        //                 </TouchableOpacity>
+        //                 <TouchableOpacity style={styles.iconOuter}>
+        //                     <IconFb style={{opacity: 0.6}}/>
+        //                 </TouchableOpacity>
+        //                 <TouchableOpacity style={styles.iconOuter}>
+        //                     <IconInst style={{opacity: 0.6}}/>
+        //                 </TouchableOpacity>
+        //                 <TouchableOpacity style={styles.iconOuterLast}>
+        //                     <IconOk style={{opacity: 0.6}}/>
+        //                 </TouchableOpacity>
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Адрес</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputAdres: text }) }  placeholder="Укажите адрес на карте" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputAdres.length > 5 ? <InputCheck style={styles.inputCheck}/> : <TouchableOpacity style={{position: 'absolute', right: 20, top: 27}} onPress={() => this.props.navigation.navigate('BusinessCreateCompanyMap')}><InputPlus/></TouchableOpacity>}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Есть еще адрес?</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputAddAdres: text }) }  placeholder="Не указано" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputAddAdres.length > 5 ? <InputCheck style={styles.inputCheck}/> : <TouchableOpacity onPress={() => this.props.navigation.navigate('BusinessCreateCompanyMap')} style={{position: 'absolute', right: 20, top: 27}}><InputPlus/></TouchableOpacity>}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Описание</Text>
+        //             <View>
+        //                 <Input placeholderTextColor="#99A2B4" onChangeText={ (text) => this.setState({ inputDesc: text }) }  placeholder="Не указано" inputContainerStyle={styles.inputContainer} inputStyle={styles.inputStyle} containerStyle={styles.inputContainerStyle}/>
+        //                 {this.state.inputDesc.length > 5 ? <InputCheck style={styles.inputCheck}/> : <TouchableOpacity style={{position: 'absolute', right: 20, top: 27}} onPress={() => this.props.navigation.navigate('BusinessCreateCompanyDesc')}><InputPlus/></TouchableOpacity>}
+        //             </View>
+        //         </View>
+        //         <View style={{marginTop: 30}}>
+        //             <Text style={styles.labelActive}>Фото и видео</Text>
+        //             <ScrollView horizontal>
+        //                 <TouchableOpacity>
+        //                     <Image style={{marginTop: 9, marginRight: 15}} source={require('../../../assets/images/business/image-upload.png')}/>
+        //                 </TouchableOpacity>
+        //                 <View style={styles.photoItem}>
+        //                     <Image source={require('../../../assets/images/images/editPhoto-1.png')} />
+        //                     <TouchableOpacity style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+        //                 </View>
+        //                 <View style={styles.photoItem}>
+        //                     <Image source={require('../../../assets/images/images/editPhoto-2.png')} />
+        //                     <TouchableOpacity style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+        //                 </View>
+        //                 <View style={styles.photoItem}>
+        //                     <Image source={require('../../../assets/images/images/editPhoto-3.png')} />
+        //                     <TouchableOpacity style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+        //                 </View>
+        //             </ScrollView>
+        //         </View>
+        
+        
+    };
