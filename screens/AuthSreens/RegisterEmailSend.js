@@ -21,7 +21,7 @@ class EnterPhone extends Component {
                     <Text style={styles.welcome}>Проверьте почту, мы отправили вам письмо!</Text>
                 </View>
                 <TouchableOpacity onPress={() => this.props.navigation.navigate('RegisterEmailSendFinish')} style={{marginTop: 35}}>
-                    <Text style={{textAlign: 'center'}}>(Подтверждение по почте 2)</Text>
+                    <Text style={{textAlign: 'center'}}>(Подтверждение по почте)</Text>
                 </TouchableOpacity>
                 <ImageBackground source={require('../../assets/images/background-login-bottom.png')} style={styles.backgroundBottom} />
             </View>

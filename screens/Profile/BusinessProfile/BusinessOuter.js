@@ -57,23 +57,30 @@ class Company extends Component {
             if (token !== null) {
                 let AuthStr = 'Bearer'.concat(JSON.parse(token))
                 this.setState({token: AuthStr})
+                this.getCompanies(AuthStr)
             }
         } catch (error) {
             
         }
     }
-    getCompanies = () => {
+    getCompanies = (token) => {
         axios({
             method: 'GET',
             baseURL: 'http://mamado.elgrow.ru',
             url: '/api/company/address/my',
             headers: {
-                Authorization: this.state.token,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                'Authorization': token,
             },
             timeout: 10000, 
         }).then( (res)=> {
+            alert('response here')
             this.setState({myCompaniesArr: res.data.data})
-        }).catch( err => {console.log(err)})
+            
+        }).catch( err => {
+            alert(`error: ${JSON.stringify(err.response.data.error)}`);
+        })
     }
     toggleModalDelete = () => {
         this.setState({modalDelete: !this.state.modalDelete})
@@ -130,15 +137,22 @@ class Company extends Component {
     };
     
     componentDidMount(){
-        const didBlurSubscription = this.props.navigation.addListener(
+        this.didBlurSubscription = this.props.navigation.addListener(
             'didFocus',
             payload => {
-                this.getCompanies()
+                this.getT();
             }
           );
-        this.getT();
+        
     };
-    
+    // componentDidUpdate(prevProps, prevState){
+            //if (prevState && prevState.token !== this.state.token && this.state.companiesArr) {
+                //this.getCompanies()
+            // }
+    // }
+    componentWillUnmount(){
+        this.didBlurSubscription.remove()
+    }
     render() {        
         return (
             <View style={styles.container}>
@@ -194,10 +208,19 @@ class Company extends Component {
                                                             <Text style={styles.rowItemStreet}>
                                                                 {item.text}
                                                             </Text>
-                                                            <Text style={{marginTop: 6}}>
-                                                                <IconMetro style={{marginTop: -2}}/>
-                                                                <Text style={styles.rowItemMetro}>{item.station}</Text>
-                                                            </Text>
+                                                                
+                                                                <Text style={{marginTop: 6}}>
+                                                                {
+                                                                    item.station 
+                                                                    ?
+                                                                    <>
+                                                                    <IconMetro style={{marginTop: -2, marginRight: 7}} fill={'#' + item.station.line.hex_color}/>
+                                                                    <Text style={styles.rowItemMetro}>{item.station.name}</Text>
+                                                                    </>
+                                                                    : <Text style={styles.rowItemMetro}></Text>
+                                                                    
+                                                                }
+                                                                </Text>
                                                             <View style={styles.rowItemStars}>
                                                                 <View>
                                                                 <StarRating
@@ -264,8 +287,16 @@ class Company extends Component {
                                                     <View style={{flex: 0.76}}>
                                                         <Text style={styles.rowItemStreetGray}>{item.text}</Text>
                                                         <Text style={{marginTop: 6}}>
-                                                            <IconMetro fill="#A4AABA" style={{marginTop: -2}}/>
-                                                            <Text style={styles.rowItemMetroGray}>{item.station}</Text>
+                                                            {
+                                                                item.station 
+                                                                ?
+                                                                <>
+                                                                <IconMetro style={{marginTop: -2, marginRight: 7}} fill={'#' + item.station.line.hex_color}/>
+                                                                <Text style={styles.rowItemMetro}>{item.station.name}</Text>
+                                                                </>
+                                                                : <Text style={styles.rowItemMetro}></Text>
+                                                                
+                                                            }
                                                         </Text>
                                                         <View style={styles.rowItemStars}>
                                                             <View>
@@ -616,7 +647,7 @@ const styles = StyleSheet.create({
         color: '#444B69',
         fontFamily: 'SF Pro Text',
         fontWeight: '400',
-        marginTop: 6
+        marginTop: 6,
     },
     rowItemMetroGray: {
         fontSize: 14,

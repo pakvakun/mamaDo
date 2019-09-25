@@ -7,6 +7,8 @@ import axios from 'axios';
 import MapView, {Marker} from "react-native-maps";
 import IconBackWhite from "../../../../assets/images/icons/icons-back-white";
 import IconMarker from "../../../../assets/images/icons/icon-marker";
+import IconGeoMap from '../../../../assets/images/icons/icon-geo-map';
+
 
 class CreateCompanyMap extends Component {
     constructor(props){
@@ -22,12 +24,12 @@ class CreateCompanyMap extends Component {
             }
         }
     }
-    getInitialState(){
-        return {
-          initialPosition: 'Can\'t find',
-          lastPosition: 'Can\'t find',
-        };
-      }
+    // getInitialState(){
+    //     return {
+    //       initialPosition: 'Can\'t find',
+    //       lastPosition: 'Can\'t find',
+    //     };
+    //   }
     getMarker = (e) => {
         this.setState({coordinate: e.nativeEvent.coordinate});
         axios({
@@ -48,7 +50,7 @@ class CreateCompanyMap extends Component {
                             text: street,
                             lat: this.state.coordinate.latitude,
                             long: this.state.coordinate.longitude,
-                    },
+                        },
                     street: street
                 });
             });
@@ -62,8 +64,7 @@ class CreateCompanyMap extends Component {
                     addresses[index].lat = this.state.addresses.lat
                     addresses[index].long = this.state.addresses.long
                     addresses[index].text = this.state.addresses.text
-                    addresses.splice(index, 1, this.state.addresses);
-                    
+                    // addresses.splice(index, 1, this.state.addresses);
                 }else{
                     addresses.splice(addresses.length, 0, this.state.addresses)
                 }
@@ -78,16 +79,11 @@ class CreateCompanyMap extends Component {
             }
     }
     componentDidMount(){
-        navigator.geolocation.getCurrentPosition(
-          (initialPosition) => this.setState({initialPosition}),
-          (error) => alert(error.message),
-          {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-        );
-        this.watchID = navigator.geolocation.watchPosition((lastPosition) => {
-          this.setState({lastPosition});
-        });
+        
       }
-    render(){             
+    render(){   
+        console.log(this.props);
+                  
         return(
             <View style={{flex: 1, backgroundColor: '#556086'}}>
                 <StatusBar barStyle="light-content" />
@@ -115,14 +111,24 @@ class CreateCompanyMap extends Component {
                     {this.state.coordinate ? (
                         <Marker
                             coordinate={this.state.coordinate}
-                            title={this.state.street}
+                            // title={this.state.street}
                         >
                             <IconMarker/>
                         </Marker>
                     ) : null}
                     </MapView>
                     {this.state.coordinate ? (
-                        <View style={{height: 100, paddingTop: 15}}>
+                        <View style={{height: 120}}>
+                            <View style={styles.mapAddress}>
+                                <View>
+                                    <IconGeoMap/>
+                                </View>
+                                <View style={{marginLeft: 10}}>
+                                    <Text style={styles.mapAddressText}>
+                                        {this.state.street || 'Загрузка...'}
+                                    </Text>
+                                </View>
+                            </View>
                             <TouchableOpacity style={styles.addressButton} onPress={()=>this.submitAddres(this.props.navigation.state.params.typeAdres)}>
                                 <Text style={styles.buttonText}>Указать этот адрес</Text>
                             </TouchableOpacity>
@@ -177,5 +183,19 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 20,
         borderTopLeftRadius: 20,
         overflow: 'hidden'
-    }
+    },
+    mapAddress: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        marginLeft: 24,
+        paddingBottom: 10,
+        paddingTop: 10,
+    },
+    mapAddressText: {
+        color: '#444B69',
+        fontSize: 16,
+        fontFamily: 'SF Pro Text',
+        fontWeight: '400'
+    },
 });

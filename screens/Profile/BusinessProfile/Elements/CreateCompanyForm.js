@@ -24,7 +24,7 @@ import IconUnchecked from "../../../../assets/images/icons/icon-unchecked";
 import IconPhotoRemove from '../../../../assets/images/icons/icon-photo-remove';
 
 //helpers
-import {replacerSpecialCharacters, onlyNumbers} from '../../../../helpers/helpers';
+import {replacerSpecialCharacters, onlyNumbers, Loading} from '../../../../helpers/helpers';
 import NothingForPrev from '../../../Components/nothingForPreview'
 
 export default class CreateCompanyForm extends Component{
@@ -39,6 +39,7 @@ export default class CreateCompanyForm extends Component{
             inputCategory: '',
             inputPhone: '',
             inputEmail: false,
+            isLoading: false,
             inputSite: '',
             inputDesc: '',
             socialArr: [],
@@ -102,8 +103,15 @@ export default class CreateCompanyForm extends Component{
     }
     handleChangeAge = (text) => {
         let temp = onlyNumbers(text);
-        let pureVal = temp ? ( temp.length < 2 ? `${temp[0]||''}${temp[1]||''}` : `${temp[0]||''}${temp[1]||''}/${temp[3]||''}${temp[4]||''}`):''
-        this.setState({ inputAge: pureVal, ageMin: temp[0]+temp[1], ageMax: temp[3]+temp[4]})
+        let ageMin = temp.trim().slice(0,2);
+        let ageMax = temp.trim().slice(2,4);
+        let inputAge;
+        if(ageMax.length){
+            inputAge = `${ageMin}/${ageMax}`
+        }else{
+            inputAge = `${ageMin}`
+        }
+        this.setState({ inputAge: inputAge , ageMin: ageMin || '', ageMax: ageMax || '' });
         
     }
     handleChangeInput = (value, name) =>{
@@ -156,23 +164,16 @@ export default class CreateCompanyForm extends Component{
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
-                const source = { uri: response.uri, name: response.fileName, type: response.type };
+                const source = { uri: response.uri, name: response.fileName, type: response.type, size: response.fileSize };
                 this.setState({
                 mediaContent: [...this.state.mediaContent, source],
                 photos: [...this.state.photos, response]
                 });
             }
           })
-        
-        // CameraRoll.getPhotos({
-        //     first: 20,
-        //     assetType: 'All'
-        //   })
-        //   .then(r => { 
-        //     this.setState({ photos: r.edges })
-        //    })
     }
     submitCompanyInform = (save) => {
+        this.setState({isLoading: true})
         if (save) {
             let {
                 inputName, 
@@ -196,6 +197,7 @@ export default class CreateCompanyForm extends Component{
                         uri: image.uri,
                         type: image.type,
                         name: image.name,
+                        size: image.size,
                     }
                     data.append(`media[${index}]`, img);
                     index === 0 ? 
@@ -251,9 +253,14 @@ export default class CreateCompanyForm extends Component{
                     'accept': "application/json",
                 }
             }).then(res => {
+                this.setState({isLoading: false});
                 this.props.navigation.goBack();
             })
-            .catch(err=>{ console.log(err, data) })
+            .catch(err=>{ 
+                this.setState({isLoading: false});
+                alert(`error, please try again: ${err}`)
+                console.log(err, data) 
+            })
         } else {
             let {
                 inputName, 
@@ -323,13 +330,15 @@ export default class CreateCompanyForm extends Component{
         }
         
     }
-    //this is trouble!!!!
-    removeMedia = (index) => {
+    removeMediaNew = (index) => {
         let mediaArr = this.state.mediaContent;
-        let oldMedia = this.state.gallery_items
         mediaArr.splice(index,1);
+        this.setState({mediaContent: mediaArr })
+    }
+    removeMediaOld = (index) => {
+        let oldMedia = this.state.gallery_items
         oldMedia.splice(index,1);
-        this.setState({mediaContent: mediaArr, gallery_items: oldMedia})
+        this.setState({gallery_items: oldMedia})
     }
     getCategories = categories => {
         if(categories.length !== 0){
@@ -375,17 +384,26 @@ export default class CreateCompanyForm extends Component{
         }
         if(params && params.companyEdit){
             let company = params.companyEdit;
-            console.log(company);
-            
+            let ageMin = company.company.age_min;
+            ageMin = ageMin.toString()
+            if (ageMin.length  == 1) {
+                
+                ageMin = ageMin.split('');
+                ageMin.unshift('0');
+                ageMin = ageMin.join('');
+                
+            }
             this.setState({
-                inputName:  company.company.name,
-                inputAge:   `${company.company.age_min}/${company.company.age_max}`,
+                inputName: company.company.name,
+                inputAge: `${ageMin}/${company.company.age_max}`,
+                ageMin: company.company.age_min,
+                ageMax: company.company.age_max,
                 inputPhone: company.company.phone,
                 inputEmail: company.company.email,
-                inputSite:  company.company.site,
-                inputDesc:  params.companyDesc || company.company.about,
-                socialArr:  company.company.soc || [],
-                gallery_items:   company.company.gallery_items,
+                inputSite: company.company.site,
+                inputDesc: params.companyDesc || company.company.about,
+                socialArr: company.company.soc || [],
+                gallery_items: company.company.gallery_items,
                 addresses: params.address || company.company.addresses
             })
         }
@@ -626,7 +644,7 @@ export default class CreateCompanyForm extends Component{
                                             <TouchableOpacity onPress={()=>this.galleryMaker()}>
                                                 <Image source={{uri: item.uri || item.download.url}} style={styles.photoElem}/>
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={()=>this.removeMedia(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+                                            <TouchableOpacity onPress={()=>this.removeMediaNew(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
                                         </View>
                                     ))
                                 }
@@ -636,7 +654,7 @@ export default class CreateCompanyForm extends Component{
                                             <TouchableOpacity onPress={()=>this.galleryMaker()}>
                                                 <Image source={{uri: item.download.url || item.download.url}} style={styles.photoElem}/>
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={()=>this.removeMedia(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+                                            <TouchableOpacity onPress={()=>this.removeMediaOld(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
                                         </View>
                                     ))
                                 }
@@ -707,6 +725,7 @@ export default class CreateCompanyForm extends Component{
                         </View>
                     </View>
                 </Modal>
+                <Loading isLoading={this.state.isLoading}/>
             </>
         )
     }

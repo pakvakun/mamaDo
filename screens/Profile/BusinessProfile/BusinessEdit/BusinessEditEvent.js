@@ -41,7 +41,7 @@ import IconModalTrash from "../../../../assets/images/icons/icon-modal-trash";
 
 //helpers
 import NothingForPrev from '../../../Components/nothingForPreview';
-import {replacerSpecialCharacters, onlyNumbers} from '../../../../helpers/helpers';
+import {replacerSpecialCharacters, onlyNumbers, Loading} from '../../../../helpers/helpers';
 
 const radio_type_event = [
     {label: 'Разовое', value: 0, send:  'TIME'},
@@ -71,6 +71,7 @@ class BusinessEditEvent extends Component {
             isModalPeriod: false,
             isModalCategory: false,
             isModalCreated: false,
+            isLoading: false,
             inputVidArr: [
                 {id: 1, name: 'item1'},
                 {id: 1, name: 'item2'},
@@ -117,11 +118,9 @@ class BusinessEditEvent extends Component {
             periodEnd: '',
             sheduleArr: [],
             sheduleArrForSend: [],
-            addresses: [{}]
+            addresses: [{}],
+            photos: [],
         }
-        this.getCategory();
-        this.getT();
-        this.getOfferType();
         
     }
     getOfferType = () => {
@@ -190,8 +189,15 @@ class BusinessEditEvent extends Component {
     }
     handleChangeAge = (text) => {
         let temp = onlyNumbers(text);
-        let pureVal = temp ? ( temp.length < 2 ? `${temp[0]||''}${temp[1]||''}` : `${temp[0]||''}${temp[1]||''}/${temp[3]||''}${temp[4]||''}`):''
-        this.setState({ inputAge: pureVal, ageMin: temp[0]+temp[1], ageMax: temp[3]+temp[4]})
+        let ageMin = temp.trim().slice(0,2);
+        let ageMax = temp.trim().slice(2,4);
+        let inputAge;
+        if(ageMax.length){
+            inputAge = `${ageMin}/${ageMax}`
+        }else{
+            inputAge = `${ageMin}`
+        }
+        this.setState({ inputAge: inputAge , ageMin: ageMin || '', ageMax: ageMax || '' });
         
     }
     handleClickSocial = (item, itemUrl) => {
@@ -247,7 +253,6 @@ class BusinessEditEvent extends Component {
                 Authorization: this.state.token,
             }
         }).then((res) => {
-            console.log(res)
             this.setState({inputCompanyNameArr: res.data})
         }).catch( err => console.log(err))
     }
@@ -291,8 +296,6 @@ class BusinessEditEvent extends Component {
                 periodStart: this.state.valueTypeEvent === 2 ? moment(event.event_period.start, 'YYYY-MM-DD').format('LL') : '',
                 periodEnd: this.state.valueTypeEvent === 2 ? moment(event.event_period.end, 'YYYY-MM-DD').format('LL') : '',
                 period: this.state.valueTypeEvent === 2 ? `${moment(event.event_period.start, 'YYYY-MM-DD').format('LL')} / ${moment(event.event_period.end, 'YYYY-MM-DD').format('LL')}` : '',
-                // sheduleArr - getSchedule
-
             })
         })
           .catch( err => console.log(err))
@@ -408,14 +411,6 @@ class BusinessEditEvent extends Component {
                 });
             }
           })
-        
-        CameraRoll.getPhotos({
-            first: 20,
-            assetType: 'All'
-          })
-          .then(r => { 
-            this.setState({ photos: r.edges })
-           })
     }
     getIdByCompanyName = (name, index, id) => {
         //Еще один костыль на Picker (забрать вместо значения объект)
@@ -649,10 +644,15 @@ class BusinessEditEvent extends Component {
             this.props.navigation.navigate('BusinessOuter');
         }).catch(err=>{ console.log(err, data) })
     }
-    removeMedia = (index) => {
+    removeMediaNew = (index) => {
         let mediaArr = this.state.mediaContent;
         mediaArr.splice(index,1);
-        this.setState({mediaContent: mediaArr})
+        this.setState({mediaContent: mediaArr })
+    }
+    removeMediaOld = (index) => {
+        let oldMedia = this.state.gallery_items
+        oldMedia.splice(index,1);
+        this.setState({gallery_items: oldMedia})
     }
     componentDidUpdate(prevProps, prevState){
         let { params } = this.props.navigation.state;
@@ -671,7 +671,10 @@ class BusinessEditEvent extends Component {
         }
     }
     componentDidMount(){
-        let { params } = this.props.navigation.state         
+        let { params } = this.props.navigation.state     
+        this.getT();
+        this.getCategory();
+        this.getOfferType();    
         if(params && params.companyDesc && params.companyDesc.length === 0){
             this.setState({inputDesc: ''})
         }        
@@ -1081,7 +1084,7 @@ class BusinessEditEvent extends Component {
                                             <TouchableOpacity onPress={()=>this.galleryMaker()}>
                                                 <Image source={{uri: item.uri || item.download.url}} style={styles.photoElem}/>
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={()=>this.removeMedia(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+                                            <TouchableOpacity onPress={()=>this.removeMediaNew(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
                                         </View>
                                     ))
                                 }
@@ -1091,7 +1094,7 @@ class BusinessEditEvent extends Component {
                                             <TouchableOpacity onPress={()=>this.galleryMaker()}>
                                                 <Image source={{uri: item.download.url || item.download.url}} style={styles.photoElem}/>
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={()=>this.removeMedia(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+                                            <TouchableOpacity onPress={()=>this.removeMediaOld(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
                                         </View>
                                     ))
                                 }

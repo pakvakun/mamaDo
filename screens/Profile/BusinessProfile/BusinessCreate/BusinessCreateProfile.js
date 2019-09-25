@@ -110,14 +110,14 @@ class BusinessCreateProfile extends Component {
     }
     sendReqForCreateProfile = () => {
         this.setState({loading: true})
+        const authStr = 'Bearer'.concat(this.props.navigation.state && this.props.navigation.state.params && this.props.navigation.state.params.T)
         Axios({
             method: 'POST',
             baseURL: 'https://mamado.elgrow.ru',
-            url: 'api/auth/login',
+            url: '/api/user/activate-business-profile',
+            headers: {Authorization: authStr},
             data: {
-                // phone: this.state.phone,
-                email: 'qwe@qwe.qwe',
-                password: 'qwe',
+                phone: this.state.phone,
             },
         }).then(res => {
             if(res.data.errPhone){
@@ -128,6 +128,9 @@ class BusinessCreateProfile extends Component {
         }).catch(err => {
             this.setState({ errPhone: 'Что-то пошло не так :(', loading: false })
         })
+    }
+    componentDidMount(){
+        this.setState({ phone: this.props.navigation.state && this.props.navigation.state.params && this.props.navigation.state.params.usersPhone || ''})
     }
     render(){
         return(
@@ -158,7 +161,7 @@ class BusinessCreateProfile extends Component {
                         <Text style={styles.phoneText}>Номер телефона</Text>
                         <TextInputMask  
                             placeholderTextColor="#DEE2EB" 
-                            style={[styles.inputStyle, styles.inputContainerStyle, styles.inputStyleText]}
+                            style={[styles.inputStyle, styles.inputContainerStyle, styles.inputStyleText, this.props.navigation.state && this.props.navigation.state.params && this.props.navigation.state.params.usersPhone ? styles.grey: styles.white]}
                             placeholder="Введите номер"
                             type={'cel-phone'}
                             value={this.state.phone}
@@ -168,6 +171,7 @@ class BusinessCreateProfile extends Component {
                                 dddMask: '+7(999)999-99-99'
                             }}
                             maxLength={16}
+                            editable={this.props.navigation.state && this.props.navigation.state.params && this.props.navigation.state.params.usersPhone ? false : true }
                         />
                         <View>
                             {
@@ -360,5 +364,11 @@ const styles = StyleSheet.create({
         fontFamily: 'SF Pro Text',
         fontWeight: '400',
         color: 'red',
+    },
+    grey: {
+        backgroundColor: '#eee',
+    },
+    white: {
+        backgroundColor: '#fff',
     }
 });

@@ -316,9 +316,9 @@ class MyCompany extends Component {
                                                 company &&
                                                 company.station
                                                 ?   <>
-                                                    <IconMetro style={{marginRight: 5}}/>
+                                                    <IconMetro style={{marginRight: 5}} fill={company.station.line && company.station.line.hex_color}/>
                                                     <Text style={styles.textMetro}>
-                                                        {company.station || 'Loading...'}
+                                                        {company.station.name || 'Loading...'}
                                                     </Text>
                                                     </>
                                                 :   null

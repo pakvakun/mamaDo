@@ -5,7 +5,7 @@ import { SearchBar, CheckBox } from 'react-native-elements';
 import Modal from 'react-native-modal';
 import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
 import MapView from 'react-native-map-clustering';
-import { Marker, OverlayComponent } from 'react-native-maps';
+import { Marker, OverlayComponent, PROVIDER_GOOGLE } from 'react-native-maps';
 import {Calendar, LocaleConfig} from 'react-native-calendars';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import moment from 'moment';
@@ -42,14 +42,12 @@ LocaleConfig.defaultLocale = 'ru';
 
 const _format = 'YYYY-MM-DD';
 const _today = moment().format(_format);
-
 class Map extends Component {
     constructor(props){
         super(props);
         this.initialState = {
             [_today]: {disabled: false}
         };
-    
         this.state = {
             isModalVisible: false,
             search: '',
@@ -89,24 +87,47 @@ class Map extends Component {
             metroStationArr: '',
             metroStationIsCheck: [],
             categoryArr: '',
-            hold: false
+            hold: false,
+            latitude: 56.838011,
+            longitude: 60.597465,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+            refMap: ''
         };
         this.getMetroStation();
         this.getCategory();
         this.getBages();
     }
-getAsyncData = async () => {
-    try {
-        let isAuth = await AsyncStorage.getItem('isAuth');
-        if (isAuth !== null) {
-            this.setState({isAuth: isAuth})
+    getAsyncData = async () => {
+        try {
+            let isAuth = await AsyncStorage.getItem('isAuth');
+            if (isAuth !== null) {
+                this.setState({isAuth: isAuth})
+            }
+        } catch (error) {
+            
         }
-    } catch (error) {
-        
     }
-}
+    getAsyncLocation = async () => {
+        try {
+            let coords = await AsyncStorage.getItem('currentPosition')
+            if (coords !== null) {
+                coords = JSON.parse(coords)
+                console.log('coords', coords, this.map);
+                
+                this.setState({latitude: +coords.lat, longitude: +coords.long})
+                
+            }
+        } catch (error) {
+            
+        }
+    }
 
-    
+    animateToRegion = () => {
+        alert(this.map.animateCamera)
+        // this.map.animateCamera({center: {latitude: +this.state.latitude, longitude: +this.state.longitude}}, 1000)
+    }
+
     getMetroStation = () => {
         axios({
             method: 'POST',
@@ -434,8 +455,10 @@ getAsyncData = async () => {
         })
     }
     componentDidMount(){
+        this.getAsyncLocation()  
         this.getEvents()
         this.setState({ defaultMarkedDay: this.state._markedDates, clickDateCounter: 0, trottler: this.trottler(this.fetchFilterInfo, 2000)})
+        this.animateToRegion()
     }
     componentDidUpdate(prevProps, prevState){
         if(prevProps !== this.props){
@@ -443,6 +466,8 @@ getAsyncData = async () => {
         }
         if (prevState && prevState.arrForSearch !== this.state.arrForSearch){
             this.state.trottler()
+        }
+        if (prevState && prevState.latitude !== this.state.latitude) {
         }
     }
     enableScroll = () => this.setState({ scrollEnabled: true });
@@ -456,7 +481,6 @@ getAsyncData = async () => {
         const showTime = this.state.filterTime;
         const showType = this.state.filterType;
         const showSentence = this.state.filterSentence;
-        var _mapW = MapView;
         const radio_props = [
             {label: 'Эта неделя', value: 0 },
             {label: 'Следующая неделя', value: 1 }
@@ -466,7 +490,9 @@ getAsyncData = async () => {
             {label: 'Групповое', value: 0 },
             {label: 'Индивидуальное', value: 1 }
         ];
-        // console.log(_mapW)
+        // console.log(platform)
+        console.log(this.state);
+        
         return (
             <View style={styles.container}>
                 <View style={styles.titleContainer}>
@@ -486,18 +512,19 @@ getAsyncData = async () => {
                 </View>
                 <View style={styles.textContainer}>
                     <MapView
-                        style={{flex: 1, overflow: 'hidden'}}
-                        // ref = {(mapView) => { _mapW = console.log(mapView)} }
-                        region={{
-                            latitude: 56.838011,
-                            longitude: 60.597465,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421
+                        style={{flex: 1, overflow: 'hidden', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}}
+                        initialRegion={{
+                            latitude: this.state.latitude,
+                            longitude: this.state.longitude,
+                            latitudeDelta: this.state.latitudeDelta,
+                            longitudeDelta: this.state.longitudeDelta,
                         }}
+                        onRegionChange={(region) => console.log('region' , region)}
                         clusterColor = '#E94C89'
                         clusterTextColor = '#fff'
                         showsUserLocation={true}
-                        // provider={PROVIDER_GOOGLE}
+                        ref={map => this.map = map }
+                        // provider={PROVIDER_GOOGLE }
                     >
                         {
                             this.state.companyEvents && 

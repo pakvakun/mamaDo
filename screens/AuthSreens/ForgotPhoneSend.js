@@ -34,7 +34,7 @@ class EnterPhone extends Component {
                 successCompare: true,
             }
         }).then(response=>{
-            this.setStorData(response.data, 1)
+            this.setStorData(response.data, true)
         }).catch(err => {this.setState({loading: false, errInput: 'Введите корректный пароль из SMS!'})})
     }
     setStorData = async (data, setVal) => {

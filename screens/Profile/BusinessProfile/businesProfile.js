@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, View, TouchableOpacity, Image, ScrollView} from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
 import {Badge} from 'react-native-elements';
+import axios from 'axios';
 
 import IconBackWhite from '../../../assets/images/icons/icons-back-white';
 import IconExit from '../../../assets/images/icons/icons-exit';
@@ -32,6 +34,10 @@ class BusinesProfile extends Component {
             isPayment: true,
             paymentDateEnd: '12 ноября 2019',
             notificationsValue: 7,
+            clientData: [],
+            isAuth: false,
+            loading: false,
+            token: ''
         };
     }
 
@@ -45,7 +51,60 @@ class BusinesProfile extends Component {
         this.setState({ isModalExitVisible: !this.state.isModalExitVisible });
         this.props.navigation.navigate('ListOuter')   
      }
+    //Обмен данными с внутренним хранилищем
+    setAsyncStorData = (data) =>{
+        this.setState({isAuth: data})
+    }
+    getAsyncStorData = async () =>{
+        try {
+            let token = await AsyncStorage.getItem('token')
+            if (token !== null) {
+                this.getClientData(JSON.parse(token))
+            }
+        } catch (error) {
+            alert(error);
+            
+        }
+    };
+    getClientData = (token) => {
+        this.setState({token: token})
+        const authStr = 'Bearer'.concat(token)
+        axios({
+            method: 'GET',
+            baseURL: 'https://mamado.elgrow.ru',
+            url: 'api/auth/me',
+            headers: {Authorization: authStr},
+            // timeout: 10000,
+        }).then(res => {
+            this.setState({clientData: res.data, isAuth: true})
+        }).catch(err => {alert(JSON.stringify(err))})
+    }
+
+    getCity = () => {
+        return 'Город не определен'
+    }
+    deleteAsyncDataObj = async (obj) => {
+        try {
+            await AsyncStorage.removeItem(obj)
+        } catch (error) {
+            
+        }
+    }
+    componentDidMount(){
+        this.didBlurSubscription = this.props.navigation.addListener(
+            'didFocus',
+            payload => {
+                this.getAsyncStorData()
+            }
+          );
+    }
+    componentWillUnmount(){
+        this.didBlurSubscription.remove()
+    }
     render() {
+        if(this.state.clientData){
+            var {name, status, is_business, messages, notifications, city, phone, email} = this.state.clientData
+        }
         return (
             <View style={styles.container}>
                 <TouchableOpacity style={styles.iconBack} onPress={() => this.props.navigation.goBack()}>
@@ -61,7 +120,7 @@ class BusinesProfile extends Component {
                         </View>
                         <View style={styles.containerEnter}>
                             {this.state.isPayment? <Crown/> : <FrownFace/>}
-                            <Text style={styles.enterText}>Екатерина Калинина</Text>
+                            <Text style={styles.enterText}>{name||phone||email}</Text>
                             <Text style={styles.notCreate}>Бизнес-пакет {this.state.isPayment ? 'активен':<Text style={{fontWeight: 'bold', color: '#fff'}}>не Активен!</Text>}</Text>
                             <Text style={styles.notCreate}>{this.state.isPayment ? 'до ' + this.state.paymentDateEnd: 'Перейдите в раздел оплаты' }</Text>
                         </View>
@@ -77,7 +136,7 @@ class BusinesProfile extends Component {
                                 <CitySelect/>
                             </View>
                             <View style={{marginLeft: 13}}>
-                                <Text style={styles.cityText}>Екатеринбург</Text>
+                                <Text style={styles.cityText}>{this.state.citySelect && this.state.citySelect.name || this.state.currentCity || city || 'Город не определен'}</Text>
                                 <Text style={styles.cityChange}>Выберите город</Text>
                             </View>
                         </TouchableOpacity>

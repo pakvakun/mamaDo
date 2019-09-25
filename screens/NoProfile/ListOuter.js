@@ -38,7 +38,7 @@ const TabNavigator = createBottomTabNavigator({
             tabBarLabel:'Список',
             tabBarIcon: ({focused}) => (
                 <List fill={focused ? "#E94C89" : "#868FB1"}/>
-            )
+            ),
         }
     },
     Map: {
@@ -47,7 +47,8 @@ const TabNavigator = createBottomTabNavigator({
             tabBarLabel:'Карта',
             tabBarIcon: ({focused}) => (
                 <Map fill={focused ? "#FACD42" : "#868FB1"}/>
-            )
+            ),
+
         }
     },
     News: {
@@ -56,7 +57,8 @@ const TabNavigator = createBottomTabNavigator({
             tabBarLabel:'Новости',
             tabBarIcon: ({focused}) => (
                 <News fill={focused ? "#42BCBC" : "#868FB1"}/>
-            )
+            ),
+
         }
     },
     Profile: {
@@ -64,8 +66,10 @@ const TabNavigator = createBottomTabNavigator({
         navigationOptions:{
             tabBarLabel:'Профиль',
             tabBarIcon: ({focused}) => (
-                <Profile/>
-            )
+                <Profile />
+            ),
+            tabBarVisible: false
+
         }
     }
 },{
@@ -87,7 +91,7 @@ const TabNavigator = createBottomTabNavigator({
             shadowRadius: 12,
             height: 60,
         }
-    }
+    },
 });
 
 export default createAppContainer(TabNavigator);

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { View } from 'react-native-animatable';
+import { View, Text } from 'react-native-animatable';
 import axios from 'axios';
 
 // правильное склонение возраста
@@ -53,9 +53,9 @@ export class Loading extends Component{
         return(
             <>
             {
-                this.props.isLoading?(
-                    <View style={{position: 'absolute', flex: 1, backgroundColor: 'rgba(255,255,255,.8)', height: '100%', width: '100%', overflow: 'hidden',}} />
-                ):null
+                this.props.isLoading
+                ?   <View style={{position: 'absolute', flex: 1, backgroundColor: 'rgba(255,255,255,.8)', height: '100%', width: '100%', overflow: 'hidden'}} />
+                :   null
             }
             </>
             
@@ -63,19 +63,12 @@ export class Loading extends Component{
     }
 }
 export function replacerSpecialCharacters(value) {
-    let pureVal = value.replace(/[\!\#\$\%\^\&\*\+\=\,\:\;\|\[\{\}\]\`\~\§\±]/gi, '');    
+    let pureVal = value.replace(/[\!\#\$\%\^\&\*\+\=\,\:\;\|\[\{\}\]\`]/gi, '');    
     return pureVal
 }
 export function onlyNumbers(value){
     let pureVal = replacerSpecialCharacters(value);
-    let temp =  pureVal.replace(/[^/\d]/gi,(val)=>{
-        if (val === '/') {
-            return '/'
-        } else {
-            return ''
-        }
-        
-    })
+    let temp =  pureVal.replace(/[/d]/gi,'')
         
     return temp
 }

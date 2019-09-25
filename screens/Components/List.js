@@ -534,9 +534,8 @@ getAsyncData = async () => {
                                 }
                             }
                         }
-                        // initialLayout={{ width: Dimensions.get('window').width, height: Dimensions.get('window').height }}
-                        sceneContainerStyle={{height: Dimensions.get('window').height}}
-                        // sceneContainerStyle={{flex: 1}}
+                        sceneContainerStyle={{height: Dimensions.get('window').height - 230}}
+                        // sceneContainerStyle={{flex: 1, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}
                         renderTabBar={(props) =>
                             <TabBar
                                 {...props}

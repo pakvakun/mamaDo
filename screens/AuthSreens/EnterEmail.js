@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View, ImageBackground, TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, View, ImageBackground, TouchableOpacity, Dimensions, KeyboardAvoidingView} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-
+import LinearGradient from '../../node_modules/react-native-linear-gradient';
 import { Input } from 'react-native-elements';
 import {replacerSpecialCharacters, Loading} from '../../helpers/helpers';
 import axios from 'axios';
@@ -84,17 +84,25 @@ class EnterPhone extends Component {
         }
         
     }
+    componentDidMount = () => {
+        Dimensions.addEventListener('change', e => {
+            console.log(e);
+            
+        })
+        // Dimensions.get('window').height
+    }
     render() {
         return (
-            <View style={styles.container}>
-                <ImageBackground source={require('../../assets/images/background-login.png')} style={styles.background}>
-                    <TouchableOpacity style={styles.back} onPress={() => this.props.navigation.goBack()}>
-                        <IconsBack/>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.topSkip} onPress={() => this.props.navigation.navigate('ListOuter')}>
-                        <Text style={styles.topSkipText}>Пропустить</Text>
-                    </TouchableOpacity>
-                </ImageBackground>
+            <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
+                <ImageBackground source={require('../../assets/images/background-login.png')} style={styles.background} />
+                    <LinearGradient colors={[ '#FFFFFF', '#FFFFFF','#FFFFFF', '#FFFFFF', '#FFFFFF00']} style={styles.topButtons}>
+                        <TouchableOpacity style={styles.back} onPress={() => this.props.navigation.goBack()}>
+                            <IconsBack/>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.topSkip} onPress={() => this.props.navigation.navigate('ListOuter')}>
+                            <Text style={styles.topSkipText}>Пропустить</Text>
+                        </TouchableOpacity>
+                    </LinearGradient>
                 <View style={styles.additionalPad}>
                     <Text style={styles.welcome}>Войти</Text>
                     <View style={styles.listBlock}>
@@ -141,7 +149,7 @@ class EnterPhone extends Component {
                     </Text>
                 </TouchableOpacity>
                 <Loading isLoading={this.state.loading}/>
-            </View>
+            </KeyboardAvoidingView>
         );
     }
 }
@@ -151,7 +159,7 @@ export default EnterPhone;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     additionalPad: {
         paddingLeft: 35,
@@ -161,12 +169,11 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 160,
         position: 'absolute',
-        top: 80
+        top: 80,
+        zIndex: 1000
     },
     back: {
         width: 24, 
-        marginLeft: 24, 
-        marginTop: -20
     },
     welcome: {
         fontSize: 36,
@@ -186,6 +193,19 @@ const styles = StyleSheet.create({
         color: '#444B69',
         fontFamily: 'SF Pro Text',
         fontWeight: '400'
+    },
+    topButtons: {
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        height: 120 , 
+        zIndex: 999, 
+        justifyContent: 'space-between', 
+        flexDirection: 'row', 
+        paddingTop: 60, 
+        paddingLeft: 24, 
+        paddingRight: 24
     },
     buttonsBlock: {
         marginTop: 50,
@@ -240,10 +260,10 @@ const styles = StyleSheet.create({
         fontWeight: '500'
     },
     topSkip: {
-        width: 90, 
-        position: 'absolute', 
-        right: 24, 
-        top: -20
+        // width: 90, 
+        // position: 'absolute', 
+        // right: 24, 
+        // top: 60
     },
     topSkipText: {
         fontSize: 15,

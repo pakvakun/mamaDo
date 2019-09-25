@@ -45,6 +45,7 @@ class Company extends Component {
         super(props);
         this.state = {
             activeSlide: 0,
+            activeSlideFull: 0,
             isModalShare: false,
             isModalCall: false,
             isModalFavorite: false,
@@ -58,6 +59,7 @@ class Company extends Component {
             companyName: false,
             about: false,
             isVisibleAboutFull: false,
+            isVisibleCompanyGallery: false,
             idCompany: this.props.navigation.state.params.id,
         }
         
@@ -90,12 +92,30 @@ class Company extends Component {
     toggleAboutFull = () => {
         this.setState({ isVisibleAboutFull: !this.state.isVisibleAboutFull})
     };
-    _renderItem({item, index}){
+    _handleClickCarouselItem = () => {
+        this.setState({ isVisibleCompanyGallery: !this.state.isVisibleCompanyGallery})
+    }
+    _renderItem = ({item, index}) => {
         return (
             <View style={styles.itemOuter}>
-                <LinearGradient colors={['#2D2D2D', '#21232C']} style={{borderRadius: 10}}>
-                    <Image style={{opacity: 0.7, minWidth: '100%', width: '100%', height: '100%', resizeMode: 'cover'}} source={{ uri: item.download.url }}/>
-                </LinearGradient>
+                <TouchableOpacity onPress={()=>this._handleClickCarouselItem()} activeOpacity={1}>
+                    <LinearGradient colors={['#2D2D2D', '#21232C']} style={{borderRadius: 10}}>
+                        <Image style={{opacity: 0.7, minWidth: '100%', width: '100%', height: '100%', resizeMode: 'cover'}} source={{ uri: item.download.url }}/>
+                    </LinearGradient>
+                </TouchableOpacity>
+                {item && item.video ? (
+                    <TouchableOpacity style={styles.videoOuter}>
+                        <IconPlay/>
+                        <Text style={styles.videoText}>Смотреть видео</Text>
+                    </TouchableOpacity>
+                ) : null}
+            </View>
+        )
+    }
+    _renderItemFullScreen = ({item, index}) => {
+        return (
+            <View style={styles.itemOuter}>
+                <Image style={{opacity: 1, minWidth: '100%', width: '100%', height: '100%', resizeMode: 'center'}} source={{ uri: item.download.url }}/>
                 {item && item.video ? (
                     <TouchableOpacity style={styles.videoOuter}>
                         <IconPlay/>
@@ -136,6 +156,7 @@ class Company extends Component {
     }
     componentDidMount(){
         this.getInfoAboutCompany(this.props.navigation.state.params.idCompany)
+        
     }
     render() {             
         const{ company } = this.state;
@@ -147,21 +168,23 @@ class Company extends Component {
                     <IconBackWhite/>
                 </TouchableOpacity>
                 <View style={styles.navHead}>
-                    <TouchableOpacity onPress={this.toggleModalFavorite} style={{marginRight: 25}}>
+                    {/* <TouchableOpacity onPress={this.toggleModalFavorite} style={{marginRight: 25}}>
                         <IconLikePage/>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity onPress={this.toggleModalShare}>
                         <IconShare/>
                     </TouchableOpacity>
                 </View>
-                <SafeAreaView style={styles.containerCarousel}>
+                <View style={styles.containerCarousel} >
                     <Carousel
                         data={company ? company.model.gallery_items: []}
                         sliderWidth={this.state.screenWidth}
                         itemWidth={this.state.screenWidth}
                         renderItem={this._renderItem}
                         onSnapToItem={(index) => this.setState({activeSlide: index}) }
+                        inactiveSlideScale={1}
                     />
+                    
                     {this.pagination}
                     <TouchableOpacity onPress={this.toggleModalChecked} style={styles.badge}>
                         <View>
@@ -171,7 +194,7 @@ class Company extends Component {
                             <Text style={styles.badgeText}>Проверено{"\n"}MamaDo</Text>
                         </View>
                     </TouchableOpacity>
-                </SafeAreaView>
+                </View>
                 <TouchableOpacity onPress={() => this.props.navigation.navigate('CompanyMap', {navProps: company})} style={styles.geoLink}>
                     <GeoLink/>
                 </TouchableOpacity>
@@ -245,8 +268,10 @@ class Company extends Component {
                                 </Text>
                             </View>
                             <View style={styles.buttonsGroup}>
-                                <TouchableOpacity onPress={this.toggleModalChat} style={styles.writeButton}>
-                                    <IconButtonMessage style={{marginRight: 10}}/>
+                                <TouchableOpacity 
+                                // onPress={this.toggleModalChat} 
+                                style={styles.writeButton}>
+                                    <IconButtonMessage style={{marginRight: 10}} fill={'#ddd'}/>
                                     <Text style={styles.buttonText}>Написать</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={this.toggleModalCall} style={styles.callButton}>
@@ -286,9 +311,9 @@ class Company extends Component {
                                                 company &&
                                                 company.station
                                                 ?   <>
-                                                    <IconMetro style={{marginRight: 5}}/>
+                                                    <IconMetro style={{marginRight: 5, marginRight: 7}} fill={'#' + company.station.line.hex_color}/>
                                                     <Text style={styles.textMetro}>
-                                                        {company.station || 'Loading...'}
+                                                        {company.station.name || 'Loading...'}
                                                     </Text>
                                                     </>
                                                 :   null
@@ -553,6 +578,29 @@ class Company extends Component {
                             </TouchableOpacity>
                         </View>
                     </View>
+                </Modal>
+                <Modal isVisible={this.state.isVisibleCompanyGallery} presentationStyle={'fullScreen'} animationType={'fade'}>
+                    <View style={{flex: 1, justifyContent: 'center'}}>
+                        <TouchableOpacity style={styles.backContainer, {top: 15, zIndex: 999}} onPress={() => this._handleClickCarouselItem()}>
+                            <IconBackWhite/>
+                        </TouchableOpacity>
+                        <Text style={styles.twoPartText}>
+                            {`${this.state.activeSlideFull + 1} / ${company && company.model.gallery_items.length}`}
+                        </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', flex: 2}}>
+                        <Carousel
+                            data={company ? company.model.gallery_items: []}
+                            sliderWidth={this.state.screenWidth}
+                            itemWidth={this.state.screenWidth}
+                            renderItem={this._renderItemFullScreen}
+                            onSnapToItem={(index) => this.setState({activeSlideFull: index}) }
+                            inactiveSlideScale={1}
+                            loop={true}
+                            firstItem={this.state.activeSlideFull}
+                        />
+                    </View>
+                    <View style={{flex: 1}}></View>
                 </Modal>
             </View>
         );

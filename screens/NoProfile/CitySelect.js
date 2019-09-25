@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, View, TouchableOpacity, ScrollView} from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+
 import { SearchBar } from 'react-native-elements';
-import Geolocation from '@react-native-community/geolocation';
+import axios from 'axios';
 
 import IconBackWhite from '../../assets/images/icons/icons-back-white';
 import GeoCurrent from '../../assets/images/icons/geo-current';
@@ -10,52 +12,122 @@ class CitySelect extends Component {
     state = {
         search: '',
         cityList: [
-            {id: 1, name: 'Екатеринбург', region: 'Свердловская область'},
-            {id: 1, name: 'Москва', region: ''},
-            {id: 1, name: 'Санкт-Петербург', region: ''},
-            {id: 1, name: 'Новосибирск', region: ''},
-            {id: 1, name: 'Волгоград', region: ''},
-            {id: 1, name: 'Воронеж', region: ''},
-            {id: 1, name: 'Казань', region: 'Республика Татарстан'},
-            {id: 1, name: 'Красноярск', region: ''},
-            {id: 1, name: 'Нижний Новгород', region: ''},
-            {id: 1, name: 'Нижний Тагил', region: ''},
-            {id: 1, name: 'Омск', region: ''},
-            {id: 1, name: 'Первоуральск', region: ''},
-            {id: 1, name: 'Пермь', region: ''},
-            {id: 1, name: 'Ростов-на-Дону', region: ''},
-            {id: 1, name: 'Рязань', region: ''},
-            {id: 1, name: 'Челябинск', region: ''},
+            // {id: 1, name: 'Екатеринбург', region: 'Свердловская область'},
+            // {id: 1, name: 'Москва', region: ''},
+            // {id: 1, name: 'Санкт-Петербург', region: ''},
+            // {id: 1, name: 'Новосибирск', region: ''},
+            // {id: 1, name: 'Волгоград', region: ''},
+            // {id: 1, name: 'Воронеж', region: ''},
+            // {id: 1, name: 'Казань', region: 'Республика Татарстан'},
+            // {id: 1, name: 'Красноярск', region: ''},
+            // {id: 1, name: 'Нижний Новгород', region: ''},
+            // {id: 1, name: 'Нижний Тагил', region: ''},
+            // {id: 1, name: 'Омск', region: ''},
+            // {id: 1, name: 'Первоуральск', region: ''},
+            // {id: 1, name: 'Пермь', region: ''},
+            // {id: 1, name: 'Ростов-на-Дону', region: ''},
+            // {id: 1, name: 'Рязань', region: ''},
+            // {id: 1, name: 'Челябинск', region: ''},
         ],
     };
 
     updateSearch = search => {
-        search = search.toLowerCase();
-        let searchCityList =  this.state.cityList.filter(item => {
-            let name = item.name.toLowerCase()
-            if (name.includes(search)) {
-                return item
-            }
-        })
-        this.setState({ search , searchCityList: searchCityList});
+        // search = search.toLowerCase();
+        // let searchCityList =  this.state.cityList.filter(item => {
+        //     let name = item.name.toLowerCase()
+        //     if (name.includes(search)) {
+        //         return item
+        //     }
+        // })
+        this.setState({ search });
+        this.getCityList()
     };
     selectedCity = (city) => {
-        this.props.navigation.state.params.citySelect(city)
-        this.props.navigation.goBack()
+        axios({
+            method: 'POST',
+            url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                'Authorization': 'Token 23cd3016c5a4229e48764f2dcef89935a7a756c3',
+            },
+            data: {
+                query: city.name,
+                count: 1,
+                from_bound: {
+                    value: 'city',
+                },
+                locations: {
+                    city_type_full: 'город'
+                },
+                to_bound: {
+                    value: 'city'
+                },
+                restrict_value: false,
+            }
+        }).then(res=>{ 
+            this.props.navigation.state.params.citySelect({name: res.data.suggestions[0].data.city, region: `${res.data.suggestions[0].data.region} ${res.data.suggestions[0].data.region_type_full}`, lat: res.data.suggestions[0].data.geo_lat, long: res.data.suggestions[0].data.geo_lon})
+            this.props.navigation.goBack()
+            
+        }).catch(err=>{console.log({err})})
     }
     getCityList = () => {
-        // axios({
-        //     method: 'GET',
-        //     url: 'https://cleaner.dadata.ru/api/v1/clean/address',
-        //     headers: {
-        //         authorization: 'Token 23cd3016c5a4229e48764f2dcef89935a7a756c3',
-        //         'X-Secret': '7420ce8f1e43fff856c570524fac56898971cf82',
-        //     },
-        //     data: this.state.search
-        // })
+        axios({
+            method: 'POST',
+            url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                'Authorization': 'Token 23cd3016c5a4229e48764f2dcef89935a7a756c3',
+                // 'X-Secret': '7420ce8f1e43fff856c570524fac56898971cf82',
+            },
+            data: {
+                query: this.state.search.length ? this.state.search : 'а',
+                count: 20,
+                from_bound: {
+                    value: 'city',
+                },
+                locations: {
+                    city_type_full: 'город'
+                },
+                to_bound: {
+                    value: 'city'
+                },
+                restrict_value: false,
+            }
+        }).then(res=>{ 
+            let cityList = [];
+
+            res.data.suggestions.map(item => {
+                cityList.push({name: item.data.city, region: `${item.data.region} ${item.data.region_type_full}`, lat: item.geo_lat, long: item.geo_lon })
+            })
+            // console.log(res);
+            
+            this.setState({cityList: cityList})
+        }).catch(err=>{console.log({err})})
     }
-    
+    getCurrentPlace = async () => {
+        try {
+            let currentPos = await AsyncStorage.getItem('currentPosition')
+            if (currentPos !== null) {
+                currentPos = JSON.parse(currentPos)
+                this.setState({currentPlace: currentPos.place, currentArea: currentPos.area, currentLat: currentPos.lat, currentLong: currentPos.long})
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    componentDidMount(){
+        this.getCurrentPlace()
+        this.getCityList()
+    }
+    componentDidUpdate(prevState){
+        // if (prevState && prevState.search !== this.state.search) {
+        //     this.getCityList()
+        // }
+    }
     render() {
+        console.log(this.state)
         const { search } = this.state;
         let { params } = this.props.navigation
         return (
@@ -77,27 +149,28 @@ class CitySelect extends Component {
                 </View>
                 <View style={styles.textContainer}>
                     <ScrollView contentContainerStyle={styles.scrollBlock}>
+                        <TouchableOpacity style={styles.cityRow} onPress={()=>this.selectedCity()}>
+                            <View>
+                                <Text style={styles.city}>{this.state.currentPlace || 'Загрузка...'}</Text>
+                                <Text style={styles.region}>{this.state.currentArea || 'Загрузка...'}</Text>
+                            </View>
+                            <View style={{marginLeft: 'auto'}}>
+                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                    <GeoCurrent/>
+                                    <Text style={{color: '#E94C89', fontSize: 14, fontFamily: 'SF Pro Text', fontWeight: '500', marginLeft: 4}}>Вы здесь</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
                         {
-                            (   this.state.searchCityList 
-                                ?   this.state.searchCityList
-                                :   this.state.cityList &&
-                                    this.state.cityList).map((city, index) => (
-                                    <TouchableOpacity style={styles.cityRow} key={index} onPress={()=>this.selectedCity(city)}>
-                                        <View>
-                                            <Text style={styles.city}>{city.name}</Text>
-                                            <Text style={styles.region}>{city.region}</Text>
-                                        </View>
-                                        {   index == 0 ?
-                                            <View style={{marginLeft: 'auto'}}>
-                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                                    <GeoCurrent/>
-                                                    <Text style={{color: '#E94C89', fontSize: 14, fontFamily: 'SF Pro Text', fontWeight: '500', marginLeft: 4}}>Вы здесь</Text>
-                                                </View>
-                                            </View> :
-                                            null
-                                        }
-                                    </TouchableOpacity>
-                                ))
+                            this.state.cityList &&
+                            this.state.cityList.map((city, index) => (
+                            <TouchableOpacity style={styles.cityRow} key={index} onPress={()=>this.selectedCity(city)}>
+                                <View>
+                                    <Text style={styles.city}>{city.name}</Text>
+                                    <Text style={styles.region}>{city.region}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))
                         }
                     </ScrollView>
                 </View>

@@ -48,6 +48,7 @@ class LoginScreen extends Component {
         super(props);
         this.state = {
             activeSlide: 0,
+            activeSlideFull: 0,
             isModalShare: false,
             isModalCall: false,
             isModalFavorite: false,
@@ -98,12 +99,30 @@ class LoginScreen extends Component {
     toggleAboutFull = () => {
         this.setState({ isVisibleAboutFull: !this.state.isVisibleAboutFull})
     };
-    _renderItem({item, index}){        
+    _handleClickCarouselItem = () => {
+        this.setState({ isVisibleCompanyGallery: !this.state.isVisibleCompanyGallery})
+    }
+    _renderItem = ({item, index}) => {
         return (
             <View style={styles.itemOuter}>
-                <LinearGradient colors={['#2D2D2D', '#21232C']} style={{borderRadius: 10}}>
-                    <Image style={{opacity: 0.7, minWidth: '100%', width: '100%', height: '100%', resizeMode: 'cover'}} source={{ uri: item.download.url }}/>
-                </LinearGradient>
+                <TouchableOpacity onPress={()=>this._handleClickCarouselItem()} activeOpacity={1}>
+                    <LinearGradient colors={['#2D2D2D', '#21232C']} style={{borderRadius: 10}}>
+                        <Image style={{opacity: 0.7, minWidth: '100%', width: '100%', height: '100%', resizeMode: 'cover'}} source={{ uri: item.download.url }}/>
+                    </LinearGradient>
+                </TouchableOpacity>
+                {item && item.video ? (
+                    <TouchableOpacity style={styles.videoOuter}>
+                        <IconPlay/>
+                        <Text style={styles.videoText}>Смотреть видео</Text>
+                    </TouchableOpacity>
+                ) : null}
+            </View>
+        )
+    }
+    _renderItemFullScreen = ({item, index}) => {
+        return (
+            <View style={styles.itemOuter}>
+                <Image style={{opacity: 1, minWidth: '100%', width: '100%', height: '100%', resizeMode: 'center'}} source={{ uri: item.download.url }}/>
                 {item && item.video ? (
                     <TouchableOpacity style={styles.videoOuter}>
                         <IconPlay/>
@@ -177,16 +196,6 @@ class LoginScreen extends Component {
         if (isAuth !== null) {
             this.setState({isAuth: isAuth})
         }
-        // AsyncStorage.getAllKeys((err, data) => {
-        //     AsyncStorage.multiGet(data, (err, res) => {
-                
-        //         for (let i = 0; i < res.length; i++) {
-        //             if(res[i][0] == 'isAuth'){
-        //                 this.setState({isAuth: +res[i][1]})
-        //             }                          
-        //         }                
-        //     })
-        // })
     }
     toFavorite = (id, companyId) => {
         this.props.navigation.state.params.toFavorite(id, companyId);
@@ -230,7 +239,7 @@ class LoginScreen extends Component {
                                 <TouchableOpacity 
                                     // onPress={()=>this.toFavorite(id, companyId)} activeOpacity={0}
                                 >
-                                    <Like fill={'#E94C89'} />
+                                    {/* <Like fill={'#E94C89'} /> */}
                                 </TouchableOpacity>
                         }
                         
@@ -375,8 +384,10 @@ class LoginScreen extends Component {
                             </View>
                         </View>
                         <View style={styles.buttonsGroup}>
-                            <TouchableOpacity onPress={this.toggleModalChat} style={styles.writeButton}>
-                                <IconButtonMessage style={{marginRight: 10}}/>
+                            <TouchableOpacity 
+                                // onPress={this.toggleModalChat} 
+                                style={styles.writeButton}>
+                                <IconButtonMessage style={{marginRight: 10}} fill={'#ddd'}/>
                                 <Text style={styles.buttonText}>Написать</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={this.toggleModalCall} style={styles.callButton}>
@@ -391,13 +402,10 @@ class LoginScreen extends Component {
                                 </View>
                                 <Text style={styles.companyName}>
                                     {
-                                        event 
-                                        ?   event.model 
-                                            ?   event.model.company
-                                                ?   event.model.company.name
-                                                :   'Загрузка...'
-                                            :   null
-                                        :   null
+                                        event &&
+                                            event.model &&
+                                                event.model.company &&
+                                                    event.model.company.name || 'Загрузка...'
                                     }
                                 </Text>
                                 <IconEventArrow style={{marginLeft: 8}}/>
@@ -412,41 +420,16 @@ class LoginScreen extends Component {
                                     </Text>
                                     <IconEventArrow style={{marginLeft: 8}}/>
                                 </View>
-                                <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 5, marginLeft: 27}}>
-                                    <IconMetro style={{marginRight: 5}}/>
-                                    <Text style={styles.textMetro}>
-                                        {event && event.station ||'Загрузка...'}
-                                    </Text>
-                                </View>
+                                    {
+                                        event && event.station &&
+                                        <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 5, marginLeft: 27}}>
+                                            <IconMetro style={{marginRight: 5, marginRight: 7}} fill={'#' + event.station.line.hex_color}/>
+                                            <Text style={styles.textMetro}>
+                                                {event && event.station.name ||'Загрузка...'}
+                                            </Text>
+                                        </View>
+                                    }
                             </TouchableOpacity>
-                            {
-                                event && event.model && event.model.order_type == 'PAYMENT'
-                                    ?   <TouchableOpacity onPress={this.toggleModalPayment} style={styles.buttonReserv}>
-                                            <View style={styles.firstPartReserv}>
-                                                <Text style={styles.buttonReservText}>Оплатить</Text>
-                                            </View>
-                                            <View style={styles.twoPartReserv}>
-                                                <Text style={styles.twoPartText}>
-                                                    {event && event.model && event.model.price} <IconRubble/>
-                                                </Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    :   null
-                            }
-                            {   event && event.model && event.model.order_type == 'BOOKING' 
-                                    ?   <TouchableOpacity onPress={this.toggleModalReserv} style={styles.buttonReserv}>
-                                            <View style={styles.firstPartReserv}>
-                                                <Text style={styles.buttonReservText}>Забронировать</Text>
-                                            </View>
-                                            <View style={styles.twoPartReserv}>
-                                                <Text style={styles.twoPartText}>
-                                                    {event && event.model && event.model.price} <IconRubble/>
-                                                </Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    :   null
-                            }
-                            
                         </View>
                         <View style={{marginTop: 40}}>
                             <Text style={styles.descTitle}>Описание</Text>
@@ -533,6 +516,34 @@ class LoginScreen extends Component {
                         
                     </View>
                 </ScrollView>
+                {
+                    event && event.model && event.model.order_type == 'PAYMENT'
+                        ?   <TouchableOpacity 
+                        // onPress={this.toggleModalPayment} 
+                        style={styles.buttonReserv}
+                        >
+                                <View style={styles.firstPartReserv}>
+                                    <Text style={styles.buttonReservText}>Оплатить</Text>
+                                </View>
+                                <View style={styles.twoPartReserv}>
+                                    <Text style={styles.twoPartText}>
+                                        {event && event.model && event.model.price} <IconRubble/>
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        :   null
+                }
+                {   event && event.model && event.model.order_type == 'BOOKING' 
+                        ?   <TouchableOpacity 
+                        // onPress={this.toggleModalReserv} 
+                        style={styles.buttonReserv}
+                        >
+                                <View style={ styles.partReserv }>
+                                    <Text style={styles.buttonReservText}>Забронировать</Text>
+                                </View>
+                            </TouchableOpacity>
+                        :   null
+                }
                 </View>
                 <Modal isVisible={this.state.isModalShare} style={styles.modal}>
                     <View style={styles.modalContent}>
@@ -709,6 +720,29 @@ class LoginScreen extends Component {
                             </TouchableOpacity>
                         </View>
                     </View>
+                </Modal>
+                <Modal isVisible={this.state.isVisibleCompanyGallery} presentationStyle={'fullScreen'} animationType={'fade'}>
+                    <View style={{flex: 1, justifyContent: 'center'}}>
+                        <TouchableOpacity style={styles.backContainer, {top: 15, zIndex: 999}} onPress={() => this._handleClickCarouselItem()}>
+                            <IconBackWhite/>
+                        </TouchableOpacity>
+                        <Text style={styles.twoPartText}>
+                            {`${this.state.activeSlideFull + 1} / ${event && event.model.gallery_items.length}`}
+                        </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', flex: 2}}>
+                        <Carousel
+                            data={event ? event.model.gallery_items: []}
+                            sliderWidth={this.state.screenWidth}
+                            itemWidth={this.state.screenWidth}
+                            renderItem={this._renderItemFullScreen}
+                            onSnapToItem={(index) => this.setState({activeSlideFull: index}) }
+                            inactiveSlideScale={1}
+                            loop={true}
+                            firstItem={this.state.activeSlideFull}
+                        />
+                    </View>
+                    <View style={{flex: 1}}></View>
                 </Modal>
             </View>
         );
@@ -914,8 +948,9 @@ const styles = StyleSheet.create({
         fontWeight: '400'
     },
     buttonReserv: {
-        marginTop: 30,
-        height: 55,
+        marginTop: 0,
+        marginBottom: 0,
+        height: 65,
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center'
@@ -923,11 +958,23 @@ const styles = StyleSheet.create({
     firstPartReserv: {
         borderTopLeftRadius: 10,
         borderBottomLeftRadius: 10,
-        backgroundColor: '#E94C89',
         flex: 0.6,
         paddingTop: 19,
         paddingBottom: 17,
-        height: 55
+        height: 65,
+        // backgroundColor: '#E94C89', return in production
+        backgroundColor: '#eee'
+    },
+    partReserv: {
+        // borderTopLeftRadius: 10, return in production
+        // borderBottomLeftRadius: 10, return in production
+        borderRadius: 10, // remove in prod
+        flex: 1,
+        paddingTop: 19,
+        paddingBottom: 17,
+        height: 65,
+        // backgroundColor: '#E94C89', return in production
+        backgroundColor: '#ddd'
     },
     buttonReservText: {
         fontSize: 14,
@@ -944,7 +991,7 @@ const styles = StyleSheet.create({
         flex: 0.4,
         paddingTop: 17,
         paddingBottom: 17,
-        height: 55
+        height: 65
     },
     twoPartText: {
         fontSize: 16,

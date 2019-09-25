@@ -39,7 +39,6 @@ class Company extends Component{
     getCompany = (idCompany=false, arrForSearch) => {
         if (this.props.companiesArr) {
             this.setState({CompanyArr: this.props.companiesArr, loading: false, searchStr: this.props.search})
-            console.log('asd', this.props.companiesArr)
         }else{
             axios({
                 method: 'GET',
@@ -221,11 +220,11 @@ class Company extends Component{
                                 </Text>
                                 <Text style={{marginTop: 6}}>
                                     {
-                                        item.model &&
-                                        item.model.station
+                                        item &&
+                                        item.station
                                             ?   <>
-                                                <IconMetro style={{marginTop: -2}}/>
-                                                <Text style={styles.rowItemMetro}>{item.model.station}</Text>
+                                                <IconMetro style={{marginTop: -2, marginRight: 7}} fill={'#' + item.station.line.hex_color}/>
+                                                <Text style={styles.rowItemMetro}>{item.station.name}</Text>
                                                 </>
                                             :   null
                                     }
@@ -252,10 +251,10 @@ class Company extends Component{
                                     {                                        
                                         this.state.favoriteArr[item.companyId] && this.state.favoriteArr[item.companyId].includes(item.id)?
                                             <TouchableOpacity onPress={()=>this.fromFavorite(item.id, item.companyId)}>
-                                                <Like/>
+                                                {/* <Like/> */}
                                             </TouchableOpacity>:
                                             <TouchableOpacity onPress={()=>this.toFavorite(item.id, item.companyId)} activeOpacity={0}>
-                                                <Like fill={'#E94C89'} />
+                                                {/* <Like fill={'#E94C89'} /> */}
                                             </TouchableOpacity>
                                     }
                                     </View>

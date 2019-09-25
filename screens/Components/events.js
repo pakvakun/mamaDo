@@ -42,14 +42,13 @@ getEvents = ( EventsArrLength, arrForSearch) => {
             this.setState({EventsArr: this.props.companyEvents, loading: false, searchStr: this.props.search})
         }else{
             let temp = this.props.companyEvents.splice(0, EventsArrLength);
-            this.setState({EventsArr: temp, loading: false})            
+            this.setState({EventsArr: temp, loading: false})   
         }
     }else{
         axios({
             method: 'GET',
-            baseURL: 'http://mamado.elgrow.ru/',
+            baseURL: 'https://mamado.elgrow.ru',
             url: '/api/event/address',
-            
         }).then( response => {
             if(!EventsArrLength){
                 this.setState({EventsArr: response.data.data, loading: false, searchStr: this.props.search})
@@ -57,10 +56,8 @@ getEvents = ( EventsArrLength, arrForSearch) => {
                 let temp = data.splice(0, EventsArrLength);
                 this.setState({EventsArr: temp, loading: false})                
             }
-            
         })
     }
-    
 }
 getEventsSearchList = () => {
 }
@@ -227,8 +224,8 @@ render(){
                                 {
                                     item.station &&
                                         <>
-                                            <IconMetro style={{marginTop: -2}}/>
-                                            <Text style={styles.rowItemMetro}>{item.station}</Text>
+                                            <IconMetro style={{marginTop: -2, marginRight: 7}} fill={'#' + item.station.line.hex_color}/>
+                                            <Text style={styles.rowItemMetro}>{item.station.name}</Text>
                                         </>    
                                 }
                             </Text>
@@ -269,10 +266,10 @@ render(){
                                     {                                        
                                         this.state.favoriteArr[item.companyId] && this.state.favoriteArr[item.companyId].includes(item.id)?
                                             <TouchableOpacity onPress={()=>this.fromFavorite(item.id, item.companyId)}>
-                                                <Like/>
+                                                {/* <Like/> */}
                                             </TouchableOpacity>:
                                             <TouchableOpacity onPress={()=>this.toFavorite(item.id, item.companyId)} activeOpacity={0}>
-                                                <Like fill={'#E94C89'} />
+                                                {/* <Like fill={'#E94C89'} /> */}
                                             </TouchableOpacity>
                                     }
                                 </View>

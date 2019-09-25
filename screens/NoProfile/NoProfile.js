@@ -26,30 +26,25 @@ class NoProfile extends Component {
         this.setState({ isModalVisible: !this.state.isModalVisible });
     };
     citySelect = (city) => {
+        console.log(city)
         this.setState({ citySelect: city})
     }
-    getCurrentCity(){
-        Geolocation.getCurrentPosition((pos) => {
-            axios({
-                    method: 'GET',
-                    baseURL: 'https://geocode-maps.yandex.ru',
-                    url: '/1.x/',
-                    params: {
-                        apikey: '34e503cc-e09e-4a0e-a961-e00d51138468',
-                        geocode: `${pos.coords.longitude},${pos.coords.latitude}`,
-                        kind: 'city',
-                        format: 'json'
-                    }
-                }).then(response => {
-                    console.log('res',response)
-                }).catch(err => console.log(err))
-        })
-    }
+    // getCurrentCity = async () => {
+    //     try {
+    //         let currentPosition = await AsyncStorage.getItem('currentPosition')
+    //         alert('getCurrentCity')
+    //         if (currentPosition !== null) {
+    //             currentPosition = JSON.parse(currentPosition)
+    //             this.setState({ currentPlace: currentPosition.place })
+    //         }
+    //     } catch (error) {
+            
+    //     }
+    // }
     componentDidMount() {
-        this.getCurrentCity()
+        // this.getCurrentCity()
     }
     render() {   
-        console.log(this.state);
              
         return (
             <View style={styles.container}>
@@ -78,7 +73,7 @@ class NoProfile extends Component {
                                 <CitySelect/>
                             </View>
                             <View style={{marginLeft: 13}}>
-                                <Text style={styles.cityText}>{this.state.citySelect && this.state.citySelect.name || this.state.currentCity}</Text>
+                                <Text style={styles.cityText}>{this.state.citySelect && this.state.citySelect.name || this.props.currentPlace || 'Загрузка...'}</Text>
                                 <Text style={styles.cityChange}>Выберите город</Text>
                             </View>
                         </TouchableOpacity>

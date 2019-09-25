@@ -38,7 +38,7 @@ import IconModalTrash from "../../../../assets/images/icons/icon-modal-trash";
 
 //helpers
 import NothingForPrev from '../../../Components/nothingForPreview';
-import {replacerSpecialCharacters, onlyNumbers} from '../../../../helpers/helpers';
+import {replacerSpecialCharacters, onlyNumbers, Loading} from '../../../../helpers/helpers';
 
 const radio_type_event = [
     {label: 'Разовое', value: 0, send:  'TIME'},
@@ -68,6 +68,7 @@ class CreateEvent extends Component {
             isModalPeriod: false,
             isModalCategory: false,
             isModalCreated: false,
+            isLoading: false,
             inputVidArr: [
                 {id: 1, name: 'item1'},
                 {id: 1, name: 'item2'},
@@ -107,7 +108,6 @@ class CreateEvent extends Component {
             checkStart: false,
             valueType: '',
             valueTypeEvent: false,
-
             time: '',
             timeStart: '',
             timeEnd: '',
@@ -115,11 +115,9 @@ class CreateEvent extends Component {
             periodEnd: '',
             sheduleArr: [],
             sheduleArrForSend: [],
-            addresses: [{}]
+            addresses: [{}],
+            photos:[]
         }
-        this.getCategory();
-        this.getT();
-        this.getOfferType();
     }
     getOfferType = () => {
         axios({
@@ -180,9 +178,15 @@ class CreateEvent extends Component {
     }
     handleChangeAge = (text) => {
         let temp = onlyNumbers(text);
-        let pureVal = temp ? ( temp.length < 2 ? `${temp[0]||''}${temp[1]||''}` : `${temp[0]||''}${temp[1]||''}/${temp[3]||''}${temp[4]||''}`):''
-        this.setState({ inputAge: pureVal, ageMin: temp[0]+temp[1], ageMax: temp[3]+temp[4]})
-        
+        let ageMin = temp.trim().slice(0,2);
+        let ageMax = temp.trim().slice(2,4);
+        let inputAge;
+        if(ageMax.length){
+            inputAge = `${ageMin}/${ageMax}`
+        }else{
+            inputAge = `${ageMin}`
+        }
+        this.setState({ inputAge: inputAge , ageMin: ageMin || '', ageMax: ageMax || '' });
     }
     handleClickSocial = (item, itemUrl) => {
         let temp = this.state.socialArr;
@@ -351,14 +355,6 @@ class CreateEvent extends Component {
                 });
             }
           })
-        
-        CameraRoll.getPhotos({
-            first: 20,
-            assetType: 'All'
-          })
-          .then(r => { 
-            this.setState({ photos: r.edges })
-           })
     }
     getIdByCompanyName = (name, index, a) => {
         //Еще один костыль на Picker (забрать вместо значения объект)
@@ -408,9 +404,8 @@ class CreateEvent extends Component {
             sheduleArrForSend,
             submitDate,
         } = this.state;
-
+            this.setState({isLoading: true})
             const data = new FormData();
-            console.log('inputTypeEvent', inputTypeEvent);
             
             mediaContent.forEach( (image, index) => {
                 let img = {
@@ -477,7 +472,7 @@ class CreateEvent extends Component {
             });
 
             data.append( 'order_type',  inputTypeSend);
-            data.append( 'types',  inputEventTypeSend);
+            data.append( 'form',  inputEventTypeSend);
             data.append( 'name',  inputName);
 
             data.append( 'age_min',  +ageMax);
@@ -490,7 +485,6 @@ class CreateEvent extends Component {
             : null;
             
             data.append( 'transfer',  +checkTransfer);
-            console.log(data)
         axios({
             method: 'POST',
             baseURL: `https://mamado.elgrow.ru`,
@@ -502,10 +496,12 @@ class CreateEvent extends Component {
                 'content-type': 'multipart/form-data',
             }
         }).then(res => {
-            console.log(res);
-            
+            this.setState({isLoading: false})            
             this.props.navigation.navigate('BusinessOuter');
-        }).catch(err=>{ console.log(err, data) })
+        }).catch(err=>{ 
+            console.log(err, data);
+            this.setState({isLoading: false})
+        })
     }
     removeMedia = (index) => {
         let mediaArr = this.state.mediaContent;
@@ -527,9 +523,15 @@ class CreateEvent extends Component {
                 this.setState({addresses: address})
             }
         }
+        if(prevState && prevState.token !== this.state.token) {
+            this.getMyCompanies()
+        }
     }
     componentDidMount(){
-        let { params } = this.props.navigation.state         
+        let { params } = this.props.navigation.state   
+        this.getT();
+        this.getCategory();
+        this.getOfferType();      
         if(params && params.companyDesc && params.companyDesc.length === 0){
             this.setState({inputDesc: ''})
         }        
@@ -937,7 +939,28 @@ class CreateEvent extends Component {
                                             <Image source={require('../../../../assets/images/business/image-upload.png')} style={styles.photoElem}/>
                                     </TouchableOpacity>
                                 </View>
-                                {
+                                {   this.state.mediaContent &&
+                                    this.state.mediaContent.map((item, index) => (
+                                        <View style={styles.photoItem} key={index}>
+                                            <TouchableOpacity onPress={()=>this.galleryMaker()}>
+                                                <Image source={{uri: item.uri || item.download.url}} style={styles.photoElem}/>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={()=>this.removeMediaNew(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+                                        </View>
+                                    ))
+                                }
+                                {   this.state.gallery_items &&
+                                    this.state.gallery_items.map((item, index) => (
+                                        <View style={styles.photoItem} key={index}>
+                                            <TouchableOpacity onPress={()=>this.galleryMaker()}>
+                                                <Image source={{uri: item.download.url || item.download.url}} style={styles.photoElem}/>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={()=>this.removeMediaOld(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
+                                        </View>
+                                    ))
+                                }
+                                {/*old photo uploader*/}
+                                {/* {
                                     this.state.mediaContent.map((item, index) => (
                                         <View style={styles.photoItem} key={index}>
                                             <TouchableOpacity onPress={()=>this.galleryMaker()}>
@@ -946,7 +969,7 @@ class CreateEvent extends Component {
                                             <TouchableOpacity onPress={()=>this.removeMedia(index)} style={styles.photoRemove}><IconPhotoRemove/></TouchableOpacity>
                                         </View>
                                     ))
-                                }
+                                } */}
                             </ScrollView>
                         </View>
                         {/* <View style={{marginTop: 30}}>
@@ -1881,6 +1904,7 @@ class CreateEvent extends Component {
                         </View>
                     </View>
                 </Modal>
+                <Loading isLoading={this.state.isLoading}/>
             </View>
         )
     }

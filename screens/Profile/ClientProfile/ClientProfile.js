@@ -3,6 +3,7 @@ import {StyleSheet, Text, View, TouchableOpacity, Image, ScrollView} from 'react
 import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
 import {Badge} from 'react-native-elements';
+import Geolocation from '@react-native-community/geolocation';
 import axios from 'axios';
 
 import IconBackWhite from '../../../assets/images/icons/icons-back-white';
@@ -34,13 +35,15 @@ class ClientProfile extends Component {
             isModalExitVisible: false,
             clientData: false,
             isAuth: false,
-            loading: false
+            loading: false,
+            token: ''
         };
         
     }
     
     citySelect = (city) => {
         this.setState({ citySelect: city})
+        this.setAsyncStoreLoaction(city.long, city.lat, city.name, city.region)
     }
     toggleModal = () => {
         this.setState({ isModalVisible: !this.state.isModalVisible });
@@ -60,11 +63,19 @@ class ClientProfile extends Component {
     setAsyncStorData = (data) =>{
         this.setState({isAuth: data})
     }
+    setAsyncStoreLoaction = async (long, lat, place, area) => {
+        try {
+            await AsyncStorage.setItem('currentPosition', JSON.stringify({lat: lat, long: long, place: place, area: area}))
+        } catch (error) {
+            alert('geolocation error' + error.message)
+        }
+    }
     getAsyncStorData = async () =>{
         try {
             let token = await AsyncStorage.getItem('token')
 
             if (token !== null) {
+                
                 this.getClientData(JSON.parse(token))
             }
 
@@ -74,20 +85,40 @@ class ClientProfile extends Component {
         }
     };
     getClientData = (token) => {
+        this.setState({token: token})
         const authStr = 'Bearer'.concat(token)
         axios({
             method: 'GET',
             baseURL: 'https://mamado.elgrow.ru',
             url: 'api/auth/me',
             headers: {Authorization: authStr},
-            timeout: 10000,
+            // timeout: 10000,
         }).then(res => {
             this.setState({clientData: res.data, isAuth: 1})
         }).catch(err => {console.log(err)})
     }
 
     getCity = () => {
-        return 'Город не определен'
+        Geolocation.getCurrentPosition((pos) => {
+            axios({
+                    method: 'GET',
+                    baseURL: 'https://geocode-maps.yandex.ru',
+                    url: '/1.x/',
+                    params: {
+                        apikey: '34e503cc-e09e-4a0e-a961-e00d51138468',
+                        geocode: `${pos.coords.longitude},${pos.coords.latitude}`,
+                        kind: 'locality',
+                        format: 'json'
+                    }
+                }).then(response => {
+                    let currentPlace = response.data.response.GeoObjectCollection.featureMember[1].GeoObject.name;
+                    let currentArea = response.data.response.GeoObjectCollection.featureMember[1].GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails.Country.AdministrativeArea.AdministrativeAreaName;
+                    let currentCountry = response.data.response.GeoObjectCollection.featureMember[1].GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails.Country.CountryName;
+
+                    this.setState({currentPlace: currentPlace, currentArea: currentArea, currentCountry: currentCountry, lat: pos.coords.latitude, long: pos.coords.longitude})
+                    this.setAsyncStoreLoaction(pos.coords.longitude, pos.coords.latitude, currentPlace, currentArea)
+                }).catch(err => console.log({err}))
+        })
     }
     deleteAsyncDataObj = async (obj) => {
         try {
@@ -97,11 +128,22 @@ class ClientProfile extends Component {
         }
     }
     componentDidMount(){
-        this.getAsyncStorData()
+        this.getCity()
+        this.didBlurSubscription = this.props.navigation.addListener(
+            'didFocus',
+            payload => {
+                this.getAsyncStorData()
+            }
+          );
+    }
+    componentWillUnmount(){
+        this.didBlurSubscription.remove()
     }
     render() {
+        console.log(this.state);
+        
         if(this.state.clientData){
-            var {name, status, isBusinesProfile, messages, notifications, city} = this.state.clientData
+            var {name, status, is_business, messages, notifications, city, phone, email} = this.state.clientData
         }
         return (
             <>
@@ -119,7 +161,7 @@ class ClientProfile extends Component {
                             <Image source={require('../../../assets/images/profile_photo/client_profile_avatar.png')} />
                         </View>
                         <View style={styles.containerEnter}>
-                            <Text style={styles.enterText}>{name||'Имя Пользователя'}</Text>
+                            <Text style={styles.enterText}>{name||phone||email}</Text>
                             <Text style={styles.notCreate}>{status||'Пользователь'}</Text>
                         </View>
                         <View style={{marginLeft: 'auto', marginTop: 30}}>
@@ -134,7 +176,7 @@ class ClientProfile extends Component {
                                 <CitySelect/>
                             </View>
                             <View style={{marginLeft: 13}}>
-                                <Text style={styles.cityText}>{this.state.citySelect && this.state.citySelect.name || this.state.currentCity || 'Город не определен'}</Text>
+                                <Text style={styles.cityText}>{this.state.citySelect && this.state.citySelect.name || this.state.currentPlace || 'Город не определен'}</Text>
                                 <Text style={styles.cityChange}>Выберите город</Text>
                             </View>
                         </TouchableOpacity>
@@ -190,7 +232,7 @@ class ClientProfile extends Component {
                     </View>
                 </ScrollView>
                 {
-                    isBusinesProfile?
+                    is_business?
                     <View>
                         <TouchableOpacity onPress={() => this.props.navigation.navigate('BusinessOuter')} style={styles.bottomBtn}>
                             <Suitcase/>
@@ -199,7 +241,7 @@ class ClientProfile extends Component {
                         </TouchableOpacity>
                     </View>:
                     <View>
-                        <TouchableOpacity onPress={() => this.props.navigation.navigate('BusinessCreateProfile')} style={styles.bottomBtn}>
+                        <TouchableOpacity onPress={() => this.props.navigation.navigate('BusinessCreateProfile', {usersPhone: phone, T: this.state.token})} style={styles.bottomBtn}>
                             <Suitcase/>
                             <Text style={styles.bottomBtnText}>Создать бизнес профиль</Text>
                             <OpenRight fill="#444B69"/>
@@ -245,7 +287,7 @@ class ClientProfile extends Component {
                     </View>
                 </Modal>
             </View>:
-            <NoProfile {...this.props}/>
+            <NoProfile {...this.props} {...this.state}/>
         }
             <Loading isLoading={this.state.loading} />
             </>
